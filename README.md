@@ -100,23 +100,19 @@ If `~/go/bin` is already in your PATH:
 ```bash
 nsscan
 ```
+
 # ⚡ One-Command Installer
 
 Termux me neeche wali command copy karke run karo:
 
 ```bash
-git clone https://github.com/njmehra09/nsscan.git && \
-cd nsscan && \
-pkg install -y golang git && \
-go mod tidy && \
-gofmt -w nsscan.go && \
-go build -o ~/go/bin/nsscan nsscan.go && \
-echo 'export PATH="$HOME/go/bin:$PATH"' >> ~/.bashrc && \
-source ~/.bashrc && \
-echo "✅ NSSCAN installed successfully!" && \
-nsscan
+curl -fsSL https://raw.githubusercontent.com/njmehra09/nsscan/main/install.sh | bash
 ```
+# 🗑️ Single-command uninstall
 
+```bash
+curl -fsSL https://raw.githubusercontent.com/njmehra09/nsscan/main/uninstall.sh | bash
+```
 ### ▶️ After installation
 
 Baad me NSSCAN directly run karne ke liye:
