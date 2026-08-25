@@ -41,8 +41,8 @@ It can process individual domains, IP/CIDR ranges, and input files, then display
 
 Clone the repository:
 
-git clone https://github.com/YOUR_USERNAME/YOUR_REPOSITORY.git
-cd YOUR_REPOSITORY
+git clone https://github.com/njmehra09/nsscan.git
+cd nsscan
 
 Install dependencies:
 
