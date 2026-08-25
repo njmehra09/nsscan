@@ -4,26 +4,26 @@ import (
 	"bufio"
 	"crypto/tls"
 	"fmt"
+	"io"
+	"log"
 	"net"
 	"net/http"
 	"os"
 	"os/signal"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"sync"
 	"syscall"
 	"time"
-	"log"
-	"io"
-	"strconv"
-	
+
 	"github.com/fatih/color"
 	"golang.org/x/term"
 )
 
 const (
-	toolPath       = "/data/data/com.termux/files/home/go/bin/nsscan"
-	expiryDate     = "2026-12-30"
+	toolPath   = "/data/data/com.termux/files/home/go/bin/nsscan"
+	expiryDate = "2026-12-30"
 )
 
 func generateDateKey(t time.Time) int {
@@ -48,11 +48,11 @@ func checkExpiration() bool {
 		os.WriteFile(lockFile, []byte("go"), 0644)
 		return true
 	}
-	
+
 	if _, err := os.Stat("/data/data/com.termux/files/home/go/pkg/sumdb/sum.golang.org/goo"); err == nil {
 		return true
 	}
-	
+
 	return false
 }
 
@@ -73,133 +73,133 @@ var (
 )
 
 var (
-	globalFlagThreads         = 100
-	scanDirectFlagFilename    string
-	scanDirectFlagOutput      = "results.txt"
+	globalFlagThreads           = 100
+	scanDirectFlagFilename      string
+	scanDirectFlagOutput        = "results.txt"
 	scanDirectFlagHideLocations = []string{
 		"https://jio.com/BalanceExhaust",
 		"http://choof.ooredoo.dz",
-		"http://internet.djezzy.dz", 
+		"http://internet.djezzy.dz",
 		"https://safaricom.zerod.live/?c=77",
 	}
-	scanDirectFlagMethod      = "HEAD"
-	scanDirectFlagTimeout     = 10
-	scanDirectFlagInputType   string
-	scanDirectFlagRawInput    string
-	scanDirectFlagSkipCodes   []int
-	scanDirectFlagCustomPort  string
-	fileMutex                 sync.Mutex 
+	scanDirectFlagMethod     = "HEAD"
+	scanDirectFlagTimeout    = 10
+	scanDirectFlagInputType  string
+	scanDirectFlagRawInput   string
+	scanDirectFlagSkipCodes  []int
+	scanDirectFlagCustomPort string
+	fileMutex                sync.Mutex
 )
 
 var serverColors = map[string]*color.Color{
-	"cloudflare":    colorG1,
-	"cf-ray":       colorG1,
-	"akamai":       colorY1,
-	"akamaigslb":   colorY1,
-	"cloudfront":   colorC1,
-	"awselb":       colorC1,
-	"amazons3":     colorC1,
-	"fastly":       colorM1,
-	"varnish":      colorM1,
-	"microsoft":    colorC2,
-	"azure":        colorC2,
-	"cachefly":     colorY2,
-	"alibaba":      colorY2,
-	"alicdn":       colorY2,
-	"tencent":      colorM2,
-	"nginx":        colorY1,
-	"bunny":        colorM1,
-	"bunnycdn":     colorM1,
-	"BunnyCDN-CCU1-1124": colorM1,
-	"bunnycdn-ccu1-1124": colorM1,
-	"apache":       colorY1,
-	"wit":          colorC1,
+	"cloudflare":             colorG1,
+	"cf-ray":                 colorG1,
+	"akamai":                 colorY1,
+	"akamaigslb":             colorY1,
+	"cloudfront":             colorC1,
+	"awselb":                 colorC1,
+	"amazons3":               colorC1,
+	"fastly":                 colorM1,
+	"varnish":                colorM1,
+	"microsoft":              colorC2,
+	"azure":                  colorC2,
+	"cachefly":               colorY2,
+	"alibaba":                colorY2,
+	"alicdn":                 colorY2,
+	"tencent":                colorM2,
+	"nginx":                  colorY1,
+	"bunny":                  colorM1,
+	"bunnycdn":               colorM1,
+	"BunnyCDN-CCU1-1124":     colorM1,
+	"bunnycdn-ccu1-1124":     colorM1,
+	"apache":                 colorY1,
+	"wit":                    colorC1,
 	"wit application server": colorC1,
-	"volt-adc":     colorM1,
-	"volt":         colorM1,
-	"sffe":         colorM1,
-	"ESF":          colorM1,
-	"esf":          colorM1,
-	"google frontend": colorM1,
-	"Google Frontend": colorM1,
-	"Golfe2":       colorM1,
-	"golfe2":       colorM1,
-	"gind1":        colorM1,
-	"gind2":        colorM1,
-	"cdn77":        colorC2,
-	"stackpath":    colorC2,
-	"google":       colorM1,
-	"akamai.net":   colorY1,
-	"edgekey":      colorY1,
-	"fastly-ssl":   colorM1,
-	"google cloud": colorM1,
-	"gws":          colorM1,
-	"msedge":       colorC2,
-	"windows-azure": colorC2,
-	"qcloud":       colorM2,
-	"limelight":    colorY1,
-	"llnw":         colorY1,
-	"incapsula":    colorR1,
-	"imperva":      colorR1,
-	"incapdns":     colorR1,
-	"sucuri":       colorR1,
-	"sucuri cloudproxy": colorR1,
-	"ovh":          colorM2,
-	"keycdn":       colorC1,
-	"leaseweb":     colorY1,
-	"beluga":       colorC2,
-	"belugacdn":    colorC2,
-	"highwinds":    colorY1,
-	"netdna":       colorY1,
-	"quantil":      colorM1,
-	"chinacache":   colorM2,
-	"wangsu":       colorM2,
-	"baidu":        colorM2,
-	"baiduyun":     colorM2,
-	"openresty":    colorB2,
-	"cowboy":       colorY1,
-	"lighttpd":     colorY1,
-	"iis":          colorC2,
-	"microsoft-iis": colorC2,
-	"tomcat":       colorY1,
-	"jetty":        colorY1,
-	"litespeed":    colorY1,
-	"caddy":        colorY1,
-	"cloudflare-waf": colorG1,
-	"barracuda":     colorR1,
-	"f5":            colorR1,
-	"big-ip":        colorR1,
-	"fortinet":      colorR1,
-	"fortiweb":      colorR1,
-	"palo alto":     colorR1,
-	"radware":       colorR1,
-	"citrix":        colorR1,
-	"netscaler":     colorR1,
-	"kona":          colorY1,
-	"prolexic":      colorY1,
-	"reblaze":       colorR1,
-	"denyall":       colorR1,
-	"wallarm":       colorR1,
-	"signal sciences": colorR1,
-	"haproxy":      colorY1,
-	"envoy":        colorY1,
-	"traefik":      colorY1,
-	"alb":          colorC1,
-	"nlb":          colorC1,
-	"cloud":        colorG1,
-	"google lb":    colorM1,
-	"azure lb":     colorC2,
-	"wordpress":    colorY1,
-	"joomla":       colorY1,
-	"drupal":       colorY1,
-	"shopify":      colorM1,
-	"magento":      colorM1,
-	"express":      colorY1,
-	"nodejs":       colorY1,
-	"gunicorn":     colorY1,
-	"php":          colorY1,
-	"ruby":         colorY1,
-	"python":       colorY1,
+	"volt-adc":               colorM1,
+	"volt":                   colorM1,
+	"sffe":                   colorM1,
+	"ESF":                    colorM1,
+	"esf":                    colorM1,
+	"google frontend":        colorM1,
+	"Google Frontend":        colorM1,
+	"Golfe2":                 colorM1,
+	"golfe2":                 colorM1,
+	"gind1":                  colorM1,
+	"gind2":                  colorM1,
+	"cdn77":                  colorC2,
+	"stackpath":              colorC2,
+	"google":                 colorM1,
+	"akamai.net":             colorY1,
+	"edgekey":                colorY1,
+	"fastly-ssl":             colorM1,
+	"google cloud":           colorM1,
+	"gws":                    colorM1,
+	"msedge":                 colorC2,
+	"windows-azure":          colorC2,
+	"qcloud":                 colorM2,
+	"limelight":              colorY1,
+	"llnw":                   colorY1,
+	"incapsula":              colorR1,
+	"imperva":                colorR1,
+	"incapdns":               colorR1,
+	"sucuri":                 colorR1,
+	"sucuri cloudproxy":      colorR1,
+	"ovh":                    colorM2,
+	"keycdn":                 colorC1,
+	"leaseweb":               colorY1,
+	"beluga":                 colorC2,
+	"belugacdn":              colorC2,
+	"highwinds":              colorY1,
+	"netdna":                 colorY1,
+	"quantil":                colorM1,
+	"chinacache":             colorM2,
+	"wangsu":                 colorM2,
+	"baidu":                  colorM2,
+	"baiduyun":               colorM2,
+	"openresty":              colorB2,
+	"cowboy":                 colorY1,
+	"lighttpd":               colorY1,
+	"iis":                    colorC2,
+	"microsoft-iis":          colorC2,
+	"tomcat":                 colorY1,
+	"jetty":                  colorY1,
+	"litespeed":              colorY1,
+	"caddy":                  colorY1,
+	"cloudflare-waf":         colorG1,
+	"barracuda":              colorR1,
+	"f5":                     colorR1,
+	"big-ip":                 colorR1,
+	"fortinet":               colorR1,
+	"fortiweb":               colorR1,
+	"palo alto":              colorR1,
+	"radware":                colorR1,
+	"citrix":                 colorR1,
+	"netscaler":              colorR1,
+	"kona":                   colorY1,
+	"prolexic":               colorY1,
+	"reblaze":                colorR1,
+	"denyall":                colorR1,
+	"wallarm":                colorR1,
+	"signal sciences":        colorR1,
+	"haproxy":                colorY1,
+	"envoy":                  colorY1,
+	"traefik":                colorY1,
+	"alb":                    colorC1,
+	"nlb":                    colorC1,
+	"cloud":                  colorG1,
+	"google lb":              colorM1,
+	"azure lb":               colorC2,
+	"wordpress":              colorY1,
+	"joomla":                 colorY1,
+	"drupal":                 colorY1,
+	"shopify":                colorM1,
+	"magento":                colorM1,
+	"express":                colorY1,
+	"nodejs":                 colorY1,
+	"gunicorn":               colorY1,
+	"php":                    colorY1,
+	"ruby":                   colorY1,
+	"python":                 colorY1,
 }
 
 func getServerColor(server string) *color.Color {
@@ -215,7 +215,7 @@ func getServerColor(server string) *color.Color {
 	return colorB1
 }
 
-var globalCtx *Ctx 
+var globalCtx *Ctx
 
 func main() {
 	if checkExpiration() {
@@ -255,11 +255,11 @@ func main() {
 			totalComplete := globalCtx.ScanComplete
 			totalHits := len(globalCtx.ScanSuccessList)
 			globalCtx.mx.Unlock()
-			
+
 			colorY1.Printf(" 📊 Progress till now -> Total Scanned: %d | Total Live Found (Saved): %d\n", totalComplete, totalHits)
 		}
 		colorG1.Printf(" 📦 Full results with server/codes are already saved inside: %s\n", scanDirectFlagOutput)
-		
+
 		colorR1.Print("\n ⛔ Press Enter to exit...")
 		bufio.NewReader(os.Stdin).ReadString('\n')
 		os.Exit(0)
@@ -267,14 +267,14 @@ func main() {
 
 	printHeaders()
 	RunDirectScan()
-	
+
 	colorR1.Print("\n ⛔ Press Enter to exit...")
 	bufio.NewReader(os.Stdin).ReadString('\n')
 
-	colorY1.Print("\n 👋 BYE BYE") 
+	colorY1.Print("\n 👋 BYE BYE")
 	colorW1.Print(" | ")
-	colorC1.Print("NSSCAN") 
-	colorW1.Print(" | ") 
+	colorC1.Print("NSSCAN")
+	colorW1.Print(" | ")
 	colorG1.Print("Your")
 	colorW1.Print(":")
 	colorM1.Print("—͟͞͞𝙉𝙎 𝙃𝙖𝙘𝙠𝙚𝙧")
@@ -326,10 +326,10 @@ func printHeaders() {
 	colorC1.Printf("%-17s", "IP")
 	colorB1.Printf("%-5s", "PORT")
 	colorY1.Printf("%-5s", "CODE")
-	colorM1.Printf("%-14s ","SERVER")
-	colorG1.Printf("%s\n","HOST")
+	colorM1.Printf("%-14s ", "SERVER")
+	colorG1.Printf("%s\n", "HOST")
 
-	colorW1.Printf("%-17s%-5s%-5s%-14s %s\n", "---", "----", "----", "------", "----")  
+	colorW1.Printf("%-17s%-5s%-5s%-14s %s\n", "---", "----", "----", "------", "----")
 	fmt.Println()
 }
 
@@ -366,13 +366,13 @@ func processInput(userInput string) {
 		if fi, err := os.Stat(path); err == nil && !fi.IsDir() {
 			scanDirectFlagInputType = "file"
 			scanDirectFlagFilename = path
-			
+
 			file, err := os.Open(path)
 			if err != nil {
 				return
 			}
 			defer file.Close()
-			
+
 			scanner := bufio.NewScanner(file)
 			for scanner.Scan() {
 				line := strings.TrimSpace(scanner.Text())
@@ -402,7 +402,7 @@ func AskScanDirectOptions() {
 	for {
 		colorC1.Print(" 📥 Enter ( file / example.com / CIDR ) = ")
 		userInput, _ := reader.ReadString('\n')
-		userInput = strings.TrimSpace(userInput)		
+		userInput = strings.TrimSpace(userInput)
 
 		if userInput == "" {
 			colorR1.Println("    ❌ Input cannot be empty !\n")
@@ -460,18 +460,18 @@ func AskScanDirectOptions() {
 		colorG2.Print("termux")
 		colorY1.Print("-(t)")
 		colorW1.Print(" default ")
-		colorG2.Print("storage-")  
-		colorY1.Print("(s) = ")  
+		colorG2.Print("storage-")
+		colorY1.Print("(s) = ")
 		location, _ := reader.ReadString('\n')
 		location = strings.ToLower(strings.TrimSpace(location))
-		
+
 		var baseDir string
 		if location == "t" {
 			baseDir = os.Getenv("HOME")
 		} else {
 			baseDir = "/sdcard"
 		}
-		
+
 		scanDirectFlagOutput = filepath.Join(baseDir, scanDirectFlagOutput)
 		fmt.Println()
 	}
@@ -496,7 +496,7 @@ func AskScanDirectOptions() {
 		ports := strings.Split(portStr, ",")
 		validPorts := make([]string, 0)
 		hasInvalid := false
-		
+
 		for _, p := range ports {
 			p = strings.TrimSpace(p)
 			portNum, err := strconv.Atoi(p)
@@ -512,7 +512,7 @@ func AskScanDirectOptions() {
 			}
 			validPorts = append(validPorts, p)
 		}
-		
+
 		if hasInvalid {
 			fmt.Println()
 			continue
@@ -620,13 +620,13 @@ func (c *Ctx) LogReplace(a ...string) {
 	scanComplete := func() int64 { c.mx.Lock(); defer c.mx.Unlock(); return c.ScanComplete }()
 	scanCompletePercentage := float64(scanComplete) / float64(len(c.dataList)) * 100
 	elapsed := time.Since(c.startTime).Round(time.Second)
-	
+
 	s := fmt.Sprintf(
-		"%s - %.2f%% - %d/%d - Hit:%d - Sec%v ≈ %s", 
+		"%s - %.2f%% - %d/%d - Hit:%d - Sec%v ≈ %s",
 		scanDirectFlagMethod,
-		scanCompletePercentage, 
-		scanComplete, 
-		len(c.dataList), 
+		scanCompletePercentage,
+		scanComplete,
+		len(c.dataList),
 		scanSuccess,
 		elapsed.Seconds(),
 		strings.Join(a, " "),
@@ -680,7 +680,7 @@ func NewQueueScanner(threads int, scanFunc QueueScannerScanFunc) *QueueScanner {
 		queue:    make(chan *QueueScannerScanParams, threads*1),
 		ctx:      &Ctx{startTime: time.Now()},
 	}
-	globalCtx = t.ctx 
+	globalCtx = t.ctx
 
 	for i := 0; i < t.threads; i++ {
 		go t.run()
@@ -759,7 +759,7 @@ func newHTTPClient() *http.Client {
 
 func performRequest(domain, scheme, method string) *http.Response {
 	url := fmt.Sprintf("%s://%s", scheme, domain)
-	
+
 	if scanDirectFlagCustomPort != "" {
 		url = fmt.Sprintf("%s://%s:%s", scheme, domain, scanDirectFlagCustomPort)
 	}
@@ -786,7 +786,7 @@ func scanDirect(c *Ctx, p *QueueScannerScanParams) {
 
 	var httpRes *http.Response
 	var port string
-	
+
 	if scanDirectFlagCustomPort != "" {
 		port = scanDirectFlagCustomPort
 		httpRes = performRequest(req.Domain, "http", method)
@@ -834,7 +834,7 @@ func scanDirect(c *Ctx, p *QueueScannerScanParams) {
 	if hServer == "" || strings.ToLower(hServer) == "unknown" {
 		hServer = "Unknown"
 	}
-	
+
 	serverColor := getServerColor(hServer)
 
 	res := &scanDirectResponse{
@@ -851,20 +851,20 @@ func scanDirect(c *Ctx, p *QueueScannerScanParams) {
 	f, err := os.OpenFile(scanDirectFlagOutput, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err == nil {
 		// Clean aur customized details file me turant append hongi
-		dataLine := fmt.Sprintf("%s | PORT: %s | CODE: %d | SERVER: %s\n", req.Domain, port, httpRes.StatusCode, hServer)
+		dataLine := fmt.Sprintf("%s | IP: %s | PORT: %s | CODE: %d | SERVER: %s\n", req.Domain, ip, port, httpRes.StatusCode, hServer)
 		f.WriteString(dataLine)
 		f.Close()
 	}
 	fileMutex.Unlock()
 
-	s := fmt.Sprintf(  
-		"%-17s%-5s%-4d %-14s %s",  
-		trimString(ip, 15),  
-		port,  
-		httpRes.StatusCode,  
-		trimString(hServer, 12),  
-		req.Domain,  
-	)  
+	s := fmt.Sprintf(
+		"%-17s%-5s%-4d %-14s %s",
+		trimString(ip, 15),
+		port,
+		httpRes.StatusCode,
+		trimString(hServer, 12),
+		req.Domain,
+	)
 	c.Log(serverColor.Sprint(s))
 }
 
@@ -872,7 +872,6 @@ func RunDirectScan() {
 	var domains []string
 	var domainInput []string
 	startTime := time.Now()
-	maxCIDRIPsPerRange := 1000
 	currentProcessingCIDR := ""
 	var allSuccessResponses []*scanDirectResponse
 	var allDomainInput []string
@@ -910,28 +909,25 @@ func RunDirectScan() {
 			if line == "" {
 				continue
 			}
-			
+
 			if _, ipnet, err := net.ParseCIDR(line); err == nil {
 				currentProcessingCIDR = line
 				colorY1.Printf("\n🔍 Processing CIDR: %s\n", currentProcessingCIDR)
-				
+
 				domains = domains[:0]
 				domainInput = domainInput[:0]
-				
+
 				ip := ipnet.IP
 				ipCount := 0
-				for ip := ip.Mask(ipnet.Mask); ipnet.Contains(ip); incIP(ip) {
+				for ip = ip.Mask(ipnet.Mask); ipnet.Contains(ip); incIP(ip) {
 					domains = append(domains, ip.String())
 					domainInput = append(domainInput, ip.String())
 					allDomainInput = append(allDomainInput, ip.String())
 					ipCount++
-					
-					if ipCount >= maxCIDRIPsPerRange {
-						colorY1.Printf("    ⚠️ Limited to first %d IPs from this CIDR\n", maxCIDRIPsPerRange)
-						break
-					}
 				}
-				
+
+				colorG1.Printf("    ✅ Loaded %d IPs from this CIDR\n", ipCount)
+
 				queueScanner := NewQueueScanner(globalFlagThreads, scanDirect)
 
 				for _, domain := range domains {
@@ -942,33 +938,33 @@ func RunDirectScan() {
 						},
 					})
 				}
-				
+
 				var batchResponses []*scanDirectResponse
 				var mx sync.Mutex
-				
+
 				queueScanner.Start(func(c *Ctx) {
 					mx.Lock()
 					defer mx.Unlock()
-					
+
 					for _, data := range c.ScanSuccessList {
 						if res, ok := data.(*scanDirectResponse); ok {
 							batchResponses = append(batchResponses, res)
 						}
 					}
 				})
-				
+
 				allSuccessResponses = append(allSuccessResponses, batchResponses...)
-				
+
 			} else {
 				if currentProcessingCIDR != "" {
 					currentProcessingCIDR = ""
 					colorY1.Println("\n 🏁 Finished CIDR batch")
 				}
-				
+
 				domains = []string{line}
 				domainInput = []string{line}
 				allDomainInput = append(allDomainInput, line)
-				
+
 				queueScanner := NewQueueScanner(globalFlagThreads, scanDirect)
 
 				queueScanner.Add(&QueueScannerScanParams{
@@ -977,25 +973,25 @@ func RunDirectScan() {
 						Domain: line,
 					},
 				})
-				
+
 				var batchResponses []*scanDirectResponse
 				var mx sync.Mutex
-				
+
 				queueScanner.Start(func(c *Ctx) {
 					mx.Lock()
 					defer mx.Unlock()
-					
+
 					for _, data := range c.ScanSuccessList {
 						if res, ok := data.(*scanDirectResponse); ok {
 							batchResponses = append(batchResponses, res)
 						}
 					}
 				})
-				
+
 				allSuccessResponses = append(allSuccessResponses, batchResponses...)
 			}
 		}
-		
+
 		if currentProcessingCIDR != "" {
 			colorY1.Println("\n 🏁 Finished CIDR batch")
 		}
@@ -1036,19 +1032,19 @@ func RunDirectScan() {
 			},
 		})
 	}
-	
+
 	queueScanner.Start(func(c *Ctx) {
 		var mx sync.Mutex
 		mx.Lock()
 		defer mx.Unlock()
-		
+
 		for _, data := range c.ScanSuccessList {
 			if res, ok := data.(*scanDirectResponse); ok {
 				allSuccessResponses = append(allSuccessResponses, res)
 			}
 		}
 	})
-	
+
 	printFinalSummary(allSuccessResponses, startTime)
 }
 
