@@ -1,14 +1,14 @@
-🚀 NSSCAN
+# 🚀 NSSCAN
 
-NSSCAN is a fast and lightweight HTTP/HTTPS host discovery and response scanner written in Go.
+**NSSCAN** is a fast and lightweight HTTP/HTTPS host discovery and response scanner written in **Go**.
 
-It supports domain, IP, CIDR, and file-based input and displays useful response information such as IP, Port, HTTP Status Code, and Server.
+It supports domain, IP, CIDR, and file-based input and displays useful response information such as **IP address, port, HTTP status code, and server**.
 
-«⚠️ Authorized Use Only: Use NSSCAN only on systems, domains, IP addresses, and networks that you own or have explicit permission to test.»
+> ⚠️ **Authorized Use Only:** Use NSSCAN only on systems, domains, IP addresses, and networks that you own or have explicit permission to test.
 
 ---
 
-✨ Features
+## ✨ Features
 
 - 🚀 Concurrent scanning
 - 🌐 HTTP/HTTPS support
@@ -16,7 +16,7 @@ It supports domain, IP, CIDR, and file-based input and displays useful response 
 - 🎯 IP address scanning
 - 📡 CIDR range scanning
 - 📂 File-based target input
-- 🔌 Single custom-port scanning
+- 🔌 Custom port scanning
 - 📊 HTTP status-code detection
 - 🖥️ Server header detection
 - 🌍 Domain IP resolution
@@ -29,166 +29,199 @@ It supports domain, IP, CIDR, and file-based input and displays useful response 
 
 ---
 
-📱 Requirements
+## 📱 Requirements
 
-NSSCAN can be built and used in Termux.
-
-Requirements
+NSSCAN can be built and used in **Termux**.
 
 - Android
 - Termux
+- Git
 - Go
 - Internet connection
 
 ---
 
-📥 Installation
+# 📥 Installation
 
-1. Install Termux packages
+### 1. Update Termux
 
+```bash
 pkg update && pkg upgrade
+```
 
-Install Git and Go:
+### 2. Install Git and Go
 
+```bash
 pkg install git golang
+```
 
----
+### 3. Clone the repository
 
-2. Clone the repository
-
+```bash
 git clone https://github.com/njmehra09/nsscan.git
+```
 
-Enter the project directory:
+### 4. Enter the project directory
 
+```bash
 cd nsscan
+```
 
----
+### 5. Install Go dependencies
 
-3. Install Go dependencies
-
+```bash
 go mod tidy
+```
 
----
+### 6. Format the source code
 
-4. Build NSSCAN
-
+```bash
 gofmt -w nsscan.go
+```
+
+### 7. Build NSSCAN
+
+```bash
 go build -o ~/go/bin/nsscan nsscan.go
+```
 
 ---
 
-▶️ Run NSSCAN
+# ▶️ Run NSSCAN
 
 Run directly:
 
+```bash
 ~/go/bin/nsscan
+```
 
-If "~/go/bin" is available in your PATH:
+If `~/go/bin` is already in your PATH:
 
+```bash
 nsscan
+```
 
 ---
 
-🎯 Target Input
+# 🎯 Target Input
 
-NSSCAN supports several target types.
+NSSCAN supports multiple target types.
 
-Domain
+### Domain
 
+```text
 example.com
+```
 
-IP Address
+### IP Address
 
+```text
 192.0.2.10
+```
 
-CIDR
+### CIDR Range
 
+```text
 192.0.2.0/24
+```
 
-Example "/16":
+Example `/16`:
 
+```text
 192.0.0.0/16
+```
 
-A normal IPv4 "/16" contains 65,536 addresses.
+A normal IPv4 `/16` contains **65,536 addresses**.
 
-File
+### File
 
-You can also provide a ".txt" file containing targets.
+A `.txt` file can contain domains, IP addresses, and CIDR ranges:
 
-Example:
-
+```text
 example.com
 example.org
 192.0.2.10
 192.0.2.0/24
+```
 
 ---
 
-🔌 Custom Port
+# 🔌 Custom Port
 
-NSSCAN supports scanning a single custom port.
+NSSCAN supports a custom port.
 
 Example:
 
+```text
 8443
+```
 
-Other examples:
+Another example:
 
+```text
 8080
-
-8000
+```
 
 When a custom port is supplied, NSSCAN attempts HTTP first and then HTTPS if the HTTP request fails.
 
-«Note: The current implementation is designed for one custom port at a time. Use separate scans for different custom ports.»
+> **Note:** The current implementation is designed for one custom port at a time.
 
 ---
 
-🌐 Default Ports
+# 🌐 Default Ports
 
-When the custom-port field is left blank, NSSCAN uses the normal HTTP/HTTPS behaviour:
+When the custom-port field is left blank:
 
+```text
 HTTP  → 80
 HTTPS → 443
+```
 
 If HTTP fails, HTTPS is attempted.
 
 ---
 
-🧵 Threads
+# 🧵 Threads
 
 Default:
 
+```text
 100
+```
 
 You can choose the number of concurrent workers during startup.
 
 Example:
 
+```text
 200
+```
 
-Use a reasonable value for your device and authorized network.
+Use a reasonable value for your device and authorized testing environment.
 
 ---
 
-⏱️ Timeout
+# ⏱️ Timeout
 
 Default:
 
+```text
 10 seconds
-
-You can change the timeout during startup.
+```
 
 Example:
 
+```text
 5
+```
 
 ---
 
-📡 HTTP Methods
+# 📡 HTTP Methods
 
 NSSCAN supports:
 
+```text
 HEAD
 GET
 POST
@@ -198,78 +231,92 @@ CONNECT
 OPTIONS
 TRACE
 PATCH
+```
 
 Default method:
 
+```text
 HEAD
+```
 
 ---
 
-🚦 Status Code Filtering
+# 🚦 Status Code Filtering
 
 You can optionally skip specific HTTP status codes.
 
 Example:
 
+```text
 302,307
+```
 
-This prevents those selected responses from being included in the saved results.
-
-Leave the field blank to keep all status codes.
+Leave the field blank if you don't want to skip any status codes.
 
 ---
 
-🖥️ Terminal Output
+# 🖥️ Terminal Output
 
-NSSCAN displays:
+Example:
 
+```text
 IP               PORT CODE SERVER         HOST
 ------------------------------------------------
 93.184.216.34    80   200  nginx          example.com
+```
 
-The scanner also displays CIDR loading progress:
+During CIDR processing:
 
+```text
 🔍 Processing CIDR: 192.0.2.0/16
 ✅ Loaded 65536 IPs from this CIDR
+```
 
 ---
 
-💾 Saved Results
+# 💾 Saved Results
 
 Results are saved automatically while scanning.
 
 Example:
 
+```text
 example.com | IP: 93.184.216.34 | PORT: 80 | CODE: 200 | SERVER: nginx
+```
 
-Each saved result contains:
+Saved information:
 
-Field| Description
-Domain| Target hostname
-IP| Resolved IP address
-PORT| Responding port
-CODE| HTTP status code
-SERVER| Server response header
+| Field | Description |
+|---|---|
+| Domain | Target hostname |
+| IP | Resolved IP address |
+| PORT | Responding port |
+| CODE | HTTP status code |
+| SERVER | Server response header |
 
 ---
 
-📁 Output File
+# 📁 Output File
 
-During startup, NSSCAN asks for the output filename.
+During startup, NSSCAN asks for an output filename.
 
 Example:
 
+```text
 results.txt
+```
 
-You can also select whether the file should be saved in Termux or device storage.
+You can choose whether the file should be saved in Termux or device storage.
 
 ---
 
-🛑 Stop a Scan
+# 🛑 Stop a Scan
 
 Press:
 
+```text
 CTRL + C
+```
 
 NSSCAN will stop gracefully and display the progress reached so far.
 
@@ -277,105 +324,150 @@ Results discovered before interruption are already saved to the output file.
 
 ---
 
-🔧 Build From Source
+# 🔧 Build From Source
 
 After modifying the source code:
 
+```bash
 gofmt -w nsscan.go
+```
 
 Update dependencies:
 
+```bash
 go mod tidy
+```
 
 Build:
 
+```bash
 go build -o ~/go/bin/nsscan nsscan.go
+```
 
 Run:
 
+```bash
 nsscan
+```
 
 ---
 
-📦 Project Structure
+# 🔄 Update NSSCAN
 
+If you already cloned the repository:
+
+```bash
+cd nsscan
+```
+
+Pull the latest changes:
+
+```bash
+git pull
+```
+
+Update dependencies:
+
+```bash
+go mod tidy
+```
+
+Format the source:
+
+```bash
+gofmt -w nsscan.go
+```
+
+Rebuild:
+
+```bash
+go build -o ~/go/bin/nsscan nsscan.go
+```
+
+Run:
+
+```bash
+nsscan
+```
+
+---
+
+# 📦 Project Structure
+
+```text
 nsscan/
 ├── nsscan.go
 ├── go.mod
 ├── go.sum
 └── README.md
+```
 
 ---
 
-📚 Dependencies
+# 📚 Dependencies
 
 NSSCAN currently uses:
 
-- fatih/color — terminal colors
-- golang.org/x/term — terminal information
+- `github.com/fatih/color`
+- `golang.org/x/term`
 
-Dependencies are managed using Go Modules.
+Dependencies are managed using **Go Modules**.
 
 ---
 
-🧪 Example
+# 🧪 Example Workflow
 
-Start:
+Start NSSCAN:
 
+```bash
 nsscan
+```
 
-Enter:
+Enter a target:
 
+```text
 example.com
+```
 
 Threads:
 
+```text
 100
+```
 
 Timeout:
 
+```text
 10
+```
 
-Output:
+Output file:
 
+```text
 results.txt
+```
 
 Custom port:
 
+```text
 8443
+```
 
 HTTP method:
 
+```text
 HEAD
+```
 
-Skip codes:
+Skip status codes:
 
-
-
-The scanner will then test the target using the selected configuration.
-
----
-
-🔄 Update From GitHub
-
-If you already cloned the repository:
-
-cd nsscan
-git pull
-
-Then rebuild:
-
-gofmt -w nsscan.go
-go mod tidy
-go build -o ~/go/bin/nsscan nsscan.go
-
-Run:
-
-nsscan
+```text
+302,307
+```
 
 ---
 
-⚠️ Responsible Use
+# ⚠️ Responsible Use
 
 NSSCAN is intended for:
 
@@ -386,15 +478,15 @@ NSSCAN is intended for:
 - Educational networking
 - Networks where you have explicit permission
 
-Do not scan systems or networks without authorization.
+Do **not** scan systems or networks without authorization.
 
 The author is not responsible for misuse of this software.
 
 ---
 
-👤 Author
+# 👤 Author
 
-NJ Mehra
+**NJ Mehra**
 
 GitHub:
 
@@ -406,16 +498,16 @@ https://github.com/njmehra09/nsscan
 
 ---
 
-📜 License
+# 📜 License
 
 This project currently does not specify a license.
 
-If you want others to legally reuse, modify, or distribute the project, add an appropriate open-source license to the repository.
+If you want others to legally reuse, modify, or distribute the project, add an appropriate open-source license.
 
 ---
 
-⭐ Support
+## ⭐ Support
 
 If you find NSSCAN useful, consider giving the repository a ⭐ on GitHub.
 
-NSSCAN — Fast • Simple • Accurate
+**NSSCAN — Fast • Simple • Accurate**
